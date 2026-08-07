@@ -25,7 +25,13 @@ except ImportError:
     sync_playwright = None  # only needed for scrape_ocbc_official()
 
 CURRENCIES = ["USD", "EUR", "SGD", "JPY", "CNY"]
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; rate-board-script/1.0)"}
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+}
 
 # Indonesian bank pages list RMB as "CNH" (offshore yuan), not "CNY".
 # We match CNH on the page but store/display it as CNY everywhere.
@@ -119,8 +125,8 @@ def scrape_bni_official():
 
 
 def scrape_mandiri_official():
-    url = "https://www.bankmandiri.co.id/en/kurs"
-    soup = BeautifulSoup(fetch_html(url), "html.parser")
+    url = "https://www.bankmandiri.co.id/kurs"
+    soup = BeautifulSoup(fetch_html(url, timeout=60, retries=3), "html.parser")
 
     rates = {}
     for row in soup.find_all("tr"):
