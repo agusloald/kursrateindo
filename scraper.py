@@ -43,6 +43,20 @@ def normalize_ccy(text):
     return code if code in CURRENCIES else None
 
 
+def fetch_html(url, timeout=30, retries=2):
+    """GET a URL with a couple of retries — some bank sites are slow or
+    flaky, especially when hit from a cloud runner like GitHub Actions."""
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            return resp.text
+        except requests.exceptions.RequestException as e:
+            last_err = e
+    raise last_err
+
+
 def parse_number(text):
     """Turn '20.617,57' or '20,617.57' -> 20617.57"""
     cleaned = text.strip()
@@ -62,9 +76,7 @@ def parse_number(text):
 
 def scrape_bca_official():
     url = "https://www.bca.co.id/en/informasi/kurs"
-    resp = requests.get(url, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(fetch_html(url), "html.parser")
 
     rates = {}
     for row in soup.find_all("tr"):
@@ -85,9 +97,7 @@ def scrape_bca_official():
 
 def scrape_bni_official():
     url = "https://www.bni.co.id/id-id/beranda/informasi-valas"
-    resp = requests.get(url, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(fetch_html(url), "html.parser")
 
     rates = {}
     first_table = soup.find("table") 
@@ -110,9 +120,7 @@ def scrape_bni_official():
 
 def scrape_mandiri_official():
     url = "https://www.bankmandiri.co.id/en/kurs"
-    resp = requests.get(url, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(fetch_html(url), "html.parser")
 
     rates = {}
     for row in soup.find_all("tr"):
@@ -134,9 +142,7 @@ def scrape_mandiri_official():
 def scrape_jago_official():
     """Jago provides a clean HTML table for their Foreign Currency Pocket rates."""
     url = "https://www.jago.com/en/jago/digital/pocket/foreign-currency"
-    resp = requests.get(url, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(fetch_html(url), "html.parser")
 
     rates = {}
     table = soup.find("table")
@@ -168,9 +174,7 @@ def scrape_smbci_official():
     """SMBC Indonesia (which operates Jenius) prints one simple table:
     Currency | Buy | Sell — and it already labels RMB as CNY directly."""
     url = "https://www.smbci.com/en/prime-lending-rate/kurs"
-    resp = requests.get(url, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(fetch_html(url), "html.parser")
 
     rates = {}
     table = soup.find("table")
@@ -211,13 +215,14 @@ def scrape_ocbc_official():
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
-        page.goto(url, wait_until="networkidle", timeout=30000)
-        # Give any late-loading widgets a moment to render.
-        page.wait_for_timeout(2000)
+        page.goto(url, wait_until="load", timeout=45000)
+        # Give client-side JS a moment to fetch and render the rate table.
+        page.wait_for_timeout(4000)
         html = page.content()
         browser.close()
 
     soup = BeautifulSoup(html, "html.parser")
+    tables = soup.find_all("table")
     for row in soup.find_all("tr"):
         cells = row.find_all(["th", "td"])
         if len(cells) < 3:
@@ -230,6 +235,20 @@ def scrape_ocbc_official():
         jual = parse_number(cells[2].get_text())
         if beli is not None and jual is not None:
             rates[ccy] = {"beli": beli, "jual": jual}
+
+    if not rates:
+        # Diagnostic dump so we can see WHY nothing matched, instead of
+        # guessing blind. Look for currency codes anywhere on the page.
+        body_text = soup.get_text(" ", strip=True)
+        found_codes = sorted(set(re.findall(r"\b(USD|EUR|SGD|JPY|CNY|CNH)\b", body_text)))
+        print(f"    [debug] OCBC: {len(tables)} <table> tag(s) found on page", file=sys.stderr)
+        print(f"    [debug] OCBC: currency codes seen in page text: {found_codes}", file=sys.stderr)
+        # Print a chunk of text right around the first currency code found,
+        # since that's likely near the actual rate numbers.
+        if found_codes:
+            idx = body_text.find(found_codes[0])
+            snippet = body_text[max(0, idx - 50): idx + 400]
+            print(f"    [debug] OCBC: text near '{found_codes[0]}': {snippet!r}", file=sys.stderr)
 
     return date.today().isoformat(), rates
 
