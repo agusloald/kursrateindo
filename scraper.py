@@ -3,12 +3,15 @@
 scraper.py — refreshes rates.json for the Papan Kurs webpage.
 
 Where the numbers come from:
-  - BCA, BNI, Mandiri, Jago, SMBCI (Jenius) -> scraped directly from each
-    bank's own official rate page (plain HTML, no login needed).
-  - OCBC -> also scraped from its official page, but that page only
-    fills in its rate table via JavaScript, so a plain HTTP request sees
-    nothing. scrape_ocbc_official() instead drives a real (headless)
-    browser via Playwright to load the page properly before reading it.
+  - BCA, BNI, Jago, SMBCI (Jenius) -> scraped directly from each bank's
+    own official rate page via a plain HTTP request (plain HTML, no
+    login needed).
+  - Mandiri -> also scraped from its official page, but plain HTTP
+    requests to it were timing out repeatedly (likely blocked/throttled
+    for non-browser clients), so it now goes through a real headless
+    browser (Playwright) instead, same as OCBC.
+  - OCBC -> its rate table is filled in by JavaScript, so a plain HTTP
+    request sees nothing. Also uses the headless-browser fetch.
 """
 
 import json
@@ -61,6 +64,50 @@ def fetch_html(url, timeout=30, retries=2):
         except requests.exceptions.RequestException as e:
             last_err = e
     raise last_err
+
+
+def fetch_html_via_browser(url, wait_ms=4000, debug_label=None):
+    """Load a URL with a real (headless) Chromium browser via Playwright,
+    instead of a plain HTTP request. Some bank sites either fill their
+    content in with JavaScript, or silently drop/stall plain 'requests'
+    connections from non-browser clients — a real browser gets past both.
+
+    Includes a couple of light anti-bot-detection tweaks (hiding the
+    'this is an automated browser' flag) since some sites serve a blank
+    or stripped page specifically to headless browsers.
+    """
+    if sync_playwright is None:
+        raise RuntimeError(
+            "playwright isn't installed — run: pip install playwright "
+            "--break-system-packages && playwright install --with-deps chromium"
+        )
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            args=["--disable-blink-features=AutomationControlled"]
+        )
+        context = browser.new_context(
+            user_agent=HEADERS["User-Agent"],
+            locale="en-US",
+            viewport={"width": 1366, "height": 900},
+        )
+        # Hide the navigator.webdriver flag that gives away automation.
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
+        )
+        page = context.new_page()
+        response = page.goto(url, wait_until="load", timeout=45000)
+        page.wait_for_timeout(wait_ms)
+        html = page.content()
+        final_url = page.url
+        status = response.status if response else None
+        browser.close()
+
+    if debug_label:
+        print(f"    [debug] {debug_label}: HTTP status {status}, final URL {final_url}", file=sys.stderr)
+        print(f"    [debug] {debug_label}: page title snippet: {html[html.find('<title'):html.find('<title')+120]!r}", file=sys.stderr)
+
+    return html
 
 
 def parse_number(text):
@@ -126,7 +173,8 @@ def scrape_bni_official():
 
 def scrape_mandiri_official():
     url = "https://www.bankmandiri.co.id/kurs"
-    soup = BeautifulSoup(fetch_html(url, timeout=60, retries=3), "html.parser")
+    html = fetch_html_via_browser(url, wait_ms=3000, debug_label="Mandiri")
+    soup = BeautifulSoup(html, "html.parser")
 
     rates = {}
     for row in soup.find_all("tr"):
@@ -201,33 +249,12 @@ def scrape_smbci_official():
     return date.today().isoformat(), rates
 
 
-# ---------------------------------------------------------------------
-# OCBC — needs a real (headless) browser, since the rate table is
-# filled in by JavaScript after the page loads. Requires:
-#   pip install playwright --break-system-packages
-#   playwright install --with-deps chromium
-# ---------------------------------------------------------------------
-
 def scrape_ocbc_official():
-    if sync_playwright is None:
-        raise RuntimeError(
-            "playwright isn't installed — run: pip install playwright "
-            "--break-system-packages && playwright install --with-deps chromium"
-        )
-
     url = "https://www.ocbc.id/en/kurs"
-    rates = {}
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        page.goto(url, wait_until="load", timeout=45000)
-        # Give client-side JS a moment to fetch and render the rate table.
-        page.wait_for_timeout(4000)
-        html = page.content()
-        browser.close()
-
+    html = fetch_html_via_browser(url, wait_ms=4000, debug_label="OCBC")
     soup = BeautifulSoup(html, "html.parser")
+
+    rates = {}
     tables = soup.find_all("table")
     for row in soup.find_all("tr"):
         cells = row.find_all(["th", "td"])
@@ -248,13 +275,18 @@ def scrape_ocbc_official():
         body_text = soup.get_text(" ", strip=True)
         found_codes = sorted(set(re.findall(r"\b(USD|EUR|SGD|JPY|CNY|CNH)\b", body_text)))
         print(f"    [debug] OCBC: {len(tables)} <table> tag(s) found on page", file=sys.stderr)
+        print(f"    [debug] OCBC: raw HTML length = {len(html)} chars", file=sys.stderr)
+        print(f"    [debug] OCBC: visible text length = {len(body_text)} chars", file=sys.stderr)
         print(f"    [debug] OCBC: currency codes seen in page text: {found_codes}", file=sys.stderr)
-        # Print a chunk of text right around the first currency code found,
-        # since that's likely near the actual rate numbers.
         if found_codes:
             idx = body_text.find(found_codes[0])
             snippet = body_text[max(0, idx - 50): idx + 400]
             print(f"    [debug] OCBC: text near '{found_codes[0]}': {snippet!r}", file=sys.stderr)
+        else:
+            # Nothing at all — dump the first chunk of visible text so we
+            # can see what page we actually landed on (block page? cookie
+            # consent wall? genuinely still loading?).
+            print(f"    [debug] OCBC: first 500 chars of visible text: {body_text[:500]!r}", file=sys.stderr)
 
     return date.today().isoformat(), rates
 
