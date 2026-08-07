@@ -246,7 +246,7 @@
   </div>
 
 <p class="note">
-    BCA, BNI, Mandiri, and Jago are pulled straight from each bank's own official rate page. OCBC and Jenius (BTPN) are pulled from the public aggregator <a href="https://kurs.web.id" target="_blank" rel="noopener">kurs.web.id</a>, since their official pages need extra tooling to scrape. Indonesian banks list RMB as "CNH" (offshore yuan) rather than "CNY" — the scraper reads CNH and shows it here as CNY, since that's what most people search for. None of this is a live feed — each bank updates on its own schedule, so check the date per row before relying on it for a transaction. Always confirm the exact rate with your bank before transacting.
+    All rates are pulled straight from each bank's own official rate page — no third-party aggregator involved. Most banks list RMB as "CNH" (offshore yuan) rather than "CNY" — the scraper reads CNH and shows it here as CNY, since that's what most people search for. None of this is a live feed — each bank updates on its own schedule, so check the date per row before relying on it for a transaction. Always confirm the exact rate with your bank before transacting.
   </p>
 </div>
 
@@ -259,12 +259,14 @@ const FALLBACK_DATA = {
   banks: [
     { name:"BCA",     full:"Bank Central Asia", date:"2026-08-07", rates:{
         USD:{beli:17920,jual:17940}, EUR:{beli:20627.69,jual:20685.46}, SGD:{beli:13955.29,jual:13995.14}, JPY:{beli:113.04,jual:113.40}, CNY:{beli:2648.69,jual:2665.95} } },
+    { name:"Mandiri", full:"Bank Mandiri", date:"2026-07-24", rates:{
+        USD:{beli:17960,jual:17990}, EUR:{beli:20458,jual:20498}, SGD:{beli:13908,jual:13939}, JPY:{beli:109.71,jual:109.96} } },
+    { name:"BNI",     full:"Bank Negara Indonesia", date:"2026-07-29", rates:{
+        USD:{beli:18072,jual:18102}, EUR:{beli:20583,jual:20636}, SGD:{beli:13976,jual:14019}, JPY:{beli:110.29,jual:110.79} } },
     { name:"Jago",    full:"Bank Jago", date:"2026-08-02", rates:{
         USD:{beli:18024,jual:18059}, EUR:{beli:20721,jual:20781}, SGD:{beli:14049,jual:14089}, JPY:{beli:112.24,jual:112.84} } },
-    { name:"OCBC",    full:"Bank OCBC NISP", date:"2026-08-02", rates:{
-        USD:{beli:17950,jual:18150}, EUR:{beli:20550,jual:20750}, SGD:{beli:13920,jual:14120}, JPY:{beli:111.00,jual:113.00} } },
-    { name:"Jenius",  full:"Bank BTPN (Jenius)", date:"2026-08-02", rates:{
-        USD:{beli:17980,jual:18120}, EUR:{beli:20600,jual:20800}, SGD:{beli:13950,jual:14100}, JPY:{beli:112.50,jual:114.50} } }
+    { name:"Jenius",  full:"Bank BTPN (Jenius)", date:"2026-08-07", rates:{
+        USD:{beli:17550,jual:18150}, EUR:{beli:20046,jual:21074}, SGD:{beli:13573,jual:14269}, JPY:{beli:110.45,jual:115.76}, CNY:{beli:2582,jual:2714} } }
   ]
 };
 

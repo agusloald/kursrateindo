@@ -3,17 +3,26 @@
 scraper.py — refreshes rates.json for the Papan Kurs webpage.
 
 Where the numbers come from:
-  - BCA, BNI, Mandiri, Jago -> scraped directly from each bank's official rate page.
-  - OCBC, Jenius (BTPN)     -> pulled from kurs.web.id (a public aggregator).
+  - BCA, BNI, Mandiri, Jago, SMBCI (Jenius) -> scraped directly from each
+    bank's own official rate page (plain HTML, no login needed).
+  - OCBC -> also scraped from its official page, but that page only
+    fills in its rate table via JavaScript, so a plain HTTP request sees
+    nothing. scrape_ocbc_official() instead drives a real (headless)
+    browser via Playwright to load the page properly before reading it.
 """
 
 import json
 import re
 import sys
-from datetime import date, datetime
+from datetime import date
 
 import requests
 from bs4 import BeautifulSoup
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None  # only needed for scrape_ocbc_official()
 
 CURRENCIES = ["USD", "EUR", "SGD", "JPY", "CNY"]
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; rate-board-script/1.0)"}
@@ -152,33 +161,25 @@ def scrape_jago_official():
 
 
 # ---------------------------------------------------------------------
-# OCBC & Jenius — fall back to the kurs.web.id aggregator.
+# Jenius (via SMBCI, its parent bank) — plain HTML table
 # ---------------------------------------------------------------------
 
-def scrape_from_aggregator(bank_code):
-    url = f"https://kurs.web.id/bank/{bank_code}"
+def scrape_smbci_official():
+    """SMBC Indonesia (which operates Jenius) prints one simple table:
+    Currency | Buy | Sell — and it already labels RMB as CNY directly."""
+    url = "https://www.smbci.com/en/prime-lending-rate/kurs"
     resp = requests.get(url, headers=HEADERS, timeout=15)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-
-    updated_text = soup.find(string=re.compile(r"Diupdate\s*:"))
-    bank_date = date.today().isoformat()
-    if updated_text:
-        m = re.search(r"Diupdate\s*:\s*(.+)", updated_text)
-        if m:
-            try:
-                bank_date = datetime.strptime(m.group(1).strip(), "%d %B %Y").date().isoformat()
-            except ValueError:
-                pass
 
     rates = {}
     table = soup.find("table")
     if table:
         for row in table.find_all("tr"):
-            cells = row.find_all("td")
+            cells = row.find_all(["th", "td"])
             if len(cells) < 3:
                 continue
-            ccy_text = cells[0].get_text(" ", strip=True)
+            ccy_text = cells[0].get_text(strip=True)
             ccy = normalize_ccy(ccy_text)
             if not ccy:
                 continue
@@ -187,7 +188,50 @@ def scrape_from_aggregator(bank_code):
             if beli is not None and jual is not None:
                 rates[ccy] = {"beli": beli, "jual": jual}
 
-    return bank_date, rates
+    return date.today().isoformat(), rates
+
+
+# ---------------------------------------------------------------------
+# OCBC — needs a real (headless) browser, since the rate table is
+# filled in by JavaScript after the page loads. Requires:
+#   pip install playwright --break-system-packages
+#   playwright install --with-deps chromium
+# ---------------------------------------------------------------------
+
+def scrape_ocbc_official():
+    if sync_playwright is None:
+        raise RuntimeError(
+            "playwright isn't installed — run: pip install playwright "
+            "--break-system-packages && playwright install --with-deps chromium"
+        )
+
+    url = "https://www.ocbc.id/en/kurs"
+    rates = {}
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(url, wait_until="networkidle", timeout=30000)
+        # Give any late-loading widgets a moment to render.
+        page.wait_for_timeout(2000)
+        html = page.content()
+        browser.close()
+
+    soup = BeautifulSoup(html, "html.parser")
+    for row in soup.find_all("tr"):
+        cells = row.find_all(["th", "td"])
+        if len(cells) < 3:
+            continue
+        ccy_text = cells[0].get_text(" ", strip=True)
+        ccy = normalize_ccy(ccy_text)
+        if not ccy:
+            continue
+        beli = parse_number(cells[1].get_text())
+        jual = parse_number(cells[2].get_text())
+        if beli is not None and jual is not None:
+            rates[ccy] = {"beli": beli, "jual": jual}
+
+    return date.today().isoformat(), rates
 
 
 BANKS = [
@@ -195,8 +239,8 @@ BANKS = [
     ("BNI",     "Bank Negara Indonesia",  scrape_bni_official),
     ("Mandiri", "Bank Mandiri",           scrape_mandiri_official),
     ("Jago",    "Bank Jago",              scrape_jago_official),
-    ("OCBC",    "Bank OCBC NISP",         lambda: scrape_from_aggregator("ocbc")),
-    ("Jenius",  "Bank BTPN (Jenius)",     lambda: scrape_from_aggregator("btpn")),
+    ("Jenius",  "Bank BTPN (Jenius)",     scrape_smbci_official),
+    ("OCBC",    "Bank OCBC NISP",         scrape_ocbc_official),
 ]
 
 
