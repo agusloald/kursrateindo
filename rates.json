@@ -1,16 +1,112 @@
 {
   "updated": "2026-08-07",
-  "currencies": ["USD", "EUR", "SGD", "JPY", "CNY"],
+  "currencies": [
+    "USD",
+    "EUR",
+    "SGD",
+    "JPY",
+    "CNY"
+  ],
   "banks": [
-    { "name": "BCA", "full": "Bank Central Asia", "date": "2026-08-07",
-      "rates": { "USD": {"beli":17920,"jual":17940}, "EUR": {"beli":20627.69,"jual":20685.46}, "SGD": {"beli":13955.29,"jual":13995.14}, "JPY": {"beli":113.04,"jual":113.40}, "CNY": {"beli":2648.69,"jual":2665.95} } },
-    { "name": "Mandiri", "full": "Bank Mandiri", "date": "2026-07-24",
-      "rates": { "USD": {"beli":17960,"jual":17990}, "EUR": {"beli":20458,"jual":20498}, "SGD": {"beli":13908,"jual":13939}, "JPY": {"beli":109.71,"jual":109.96} } },
-    { "name": "BNI", "full": "Bank Negara Indonesia", "date": "2026-07-29",
-      "rates": { "USD": {"beli":18072,"jual":18102}, "EUR": {"beli":20583,"jual":20636}, "SGD": {"beli":13976,"jual":14019}, "JPY": {"beli":110.29,"jual":110.79} } },
-    { "name": "Jago", "full": "Bank Jago", "date": "2026-08-02",
-      "rates": { "USD": {"beli":18024,"jual":18059}, "EUR": {"beli":20721,"jual":20781}, "SGD": {"beli":14049,"jual":14089}, "JPY": {"beli":112.24,"jual":112.84} } },
-    { "name": "Jenius", "full": "Bank BTPN (Jenius)", "date": "2026-08-07",
-      "rates": { "USD": {"beli":17550,"jual":18150}, "EUR": {"beli":20046,"jual":21074}, "SGD": {"beli":13573,"jual":14269}, "JPY": {"beli":110.45,"jual":115.76}, "CNY": {"beli":2582,"jual":2714} } }
+    {
+      "name": "BCA",
+      "full": "Bank Central Asia",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17825.0,
+          "jual": 17925.0
+        },
+        "SGD": {
+          "beli": 13830.05,
+          "jual": 14073.99
+        },
+        "EUR": {
+          "beli": 20429.82,
+          "jual": 20787.04
+        },
+        "JPY": {
+          "beli": 111.71,
+          "jual": 114.03
+        },
+        "CNY": {
+          "beli": 2616.25,
+          "jual": 2682.94
+        }
+      }
+    },
+    {
+      "name": "BNI",
+      "full": "Bank Negara Indonesia",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17855.0,
+          "jual": 17955.0
+        },
+        "SGD": {
+          "beli": 13920.0,
+          "jual": 14027.0
+        },
+        "EUR": {
+          "beli": 20575.0,
+          "jual": 20712.0
+        },
+        "JPY": {
+          "beli": 112.64,
+          "jual": 113.6
+        }
+      }
+    },
+    {
+      "name": "Jago",
+      "full": "Bank Jago",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17897.0,
+          "jual": 17917.0
+        },
+        "SGD": {
+          "beli": 13958.0,
+          "jual": 13998.0
+        },
+        "JPY": {
+          "beli": 112.78,
+          "jual": 113.38
+        },
+        "EUR": {
+          "beli": 20592.0,
+          "jual": 20652.0
+        }
+      }
+    },
+    {
+      "name": "Jenius",
+      "full": "Bank BTPN (Jenius)",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17550.0,
+          "jual": 18150.0
+        },
+        "JPY": {
+          "beli": 110.45,
+          "jual": 115.76
+        },
+        "SGD": {
+          "beli": 13573.0,
+          "jual": 14269.0
+        },
+        "EUR": {
+          "beli": 20046.0,
+          "jual": 21074.0
+        },
+        "CNY": {
+          "beli": 2582.0,
+          "jual": 2714.0
+        }
+      }
+    }
   ]
 }
