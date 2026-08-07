@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-02",
+  "updated": "2026-08-07",
   "currencies": [
     "USD",
     "EUR",
@@ -14,55 +14,82 @@
       "date": "2026-08-07",
       "rates": {
         "USD": {
-          "beli": 17920.0,
-          "jual": 17940.0
+          "beli": 17845.0,
+          "jual": 17945.0
         },
         "SGD": {
-          "beli": 13955.29,
-          "jual": 13995.14
+          "beli": 13844.55,
+          "jual": 14088.53
         },
         "EUR": {
-          "beli": 20627.69,
-          "jual": 20685.46
+          "beli": 20449.3,
+          "jual": 20806.52
         },
         "JPY": {
-          "beli": 113.04,
-          "jual": 113.40
+          "beli": 111.87,
+          "jual": 114.18
         },
         "CNY": {
-          "beli": 2648.69,
-          "jual": 2665.95
+          "beli": 2619.44,
+          "jual": 2686.14
+        }
+      }
+    },
+    {
+      "name": "BNI",
+      "full": "Bank Negara Indonesia",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17855.0,
+          "jual": 17955.0
+        },
+        "SGD": {
+          "beli": 13923.0,
+          "jual": 14024.0
+        },
+        "EUR": {
+          "beli": 20572.0,
+          "jual": 20707.0
+        },
+        "JPY": {
+          "beli": 112.64,
+          "jual": 113.61
         }
       }
     },
     {
       "name": "Jago",
       "full": "Bank Jago",
-      "date": "2026-08-02",
+      "date": "2026-08-07",
       "rates": {
         "USD": {
-          "beli": 18024.0,
-          "jual": 18059.0
+          "beli": 17897.0,
+          "jual": 17917.0
         },
         "SGD": {
-          "beli": 14049.0,
-          "jual": 14089.0
+          "beli": 13958.0,
+          "jual": 13998.0
         },
         "JPY": {
-          "beli": 112.24,
-          "jual": 112.84
+          "beli": 112.78,
+          "jual": 113.38
         },
         "EUR": {
-          "beli": 20721.0,
-          "jual": 20781.0
+          "beli": 20592.0,
+          "jual": 20652.0
         }
       }
     },
     {
       "name": "OCBC",
       "full": "Bank OCBC NISP",
-      "date": "2026-08-02",
+      "date": "2026-08-07",
       "rates": {
+        "CNY": {
+          "beli": 2321.15,
+          "jual": 2403.36
+        },
         "EUR": {
           "beli": 19350.5,
           "jual": 19570.5
@@ -84,8 +111,12 @@
     {
       "name": "Jenius",
       "full": "Bank BTPN (Jenius)",
-      "date": "2026-08-02",
+      "date": "2026-08-07",
       "rates": {
+        "CNY": {
+          "beli": 2378.0,
+          "jual": 2500.0
+        },
         "EUR": {
           "beli": 19116.0,
           "jual": 20097.0
