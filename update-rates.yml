@@ -1,0 +1,33 @@
+name: Update exchange rates
+
+on:
+  schedule:
+    # Runs at 03:00 UTC = 10:00 WIB (Jakarta time) every day
+    - cron: '0 3 * * *'
+  workflow_dispatch:   # lets you also trigger it manually from GitHub's UI
+
+jobs:
+  update-rates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run the scraper
+        run: python3 scraper.py
+
+      - name: Commit and push rates.json if it changed
+        run: |
+          git config user.name "rate-bot"
+          git config user.email "actions@github.com"
+          git add rates.json
+          git diff --quiet --cached || git commit -m "Update exchange rates"
+          git push

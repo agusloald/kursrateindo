@@ -1,0 +1,108 @@
+{
+  "updated": "2026-08-02",
+  "currencies": [
+    "USD",
+    "EUR",
+    "SGD",
+    "JPY",
+    "CNY"
+  ],
+  "banks": [
+    {
+      "name": "BCA",
+      "full": "Bank Central Asia",
+      "date": "2026-08-07",
+      "rates": {
+        "USD": {
+          "beli": 17920.0,
+          "jual": 17940.0
+        },
+        "SGD": {
+          "beli": 13955.29,
+          "jual": 13995.14
+        },
+        "EUR": {
+          "beli": 20627.69,
+          "jual": 20685.46
+        },
+        "JPY": {
+          "beli": 113.04,
+          "jual": 113.40
+        },
+        "CNY": {
+          "beli": 2648.69,
+          "jual": 2665.95
+        }
+      }
+    },
+    {
+      "name": "Jago",
+      "full": "Bank Jago",
+      "date": "2026-08-02",
+      "rates": {
+        "USD": {
+          "beli": 18024.0,
+          "jual": 18059.0
+        },
+        "SGD": {
+          "beli": 14049.0,
+          "jual": 14089.0
+        },
+        "JPY": {
+          "beli": 112.24,
+          "jual": 112.84
+        },
+        "EUR": {
+          "beli": 20721.0,
+          "jual": 20781.0
+        }
+      }
+    },
+    {
+      "name": "OCBC",
+      "full": "Bank OCBC NISP",
+      "date": "2026-08-02",
+      "rates": {
+        "EUR": {
+          "beli": 19350.5,
+          "jual": 19570.5
+        },
+        "JPY": {
+          "beli": 106.45,
+          "jual": 108.55
+        },
+        "SGD": {
+          "beli": 12783.1,
+          "jual": 12994.8
+        },
+        "USD": {
+          "beli": 16520.0,
+          "jual": 16800.0
+        }
+      }
+    },
+    {
+      "name": "Jenius",
+      "full": "Bank BTPN (Jenius)",
+      "date": "2026-08-02",
+      "rates": {
+        "EUR": {
+          "beli": 19116.0,
+          "jual": 20097.0
+        },
+        "JPY": {
+          "beli": 104.3,
+          "jual": 109.55
+        },
+        "SGD": {
+          "beli": 12859.0,
+          "jual": 13519.0
+        },
+        "USD": {
+          "beli": 16475.0,
+          "jual": 17075.0
+        }
+      }
+    }
+  ]
+}
